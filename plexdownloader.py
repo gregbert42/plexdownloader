@@ -5,13 +5,16 @@ import downloader
 
 #Future improvement: show size before downloading...
 
-def crypt(direction,input):
+def crypt(direction,input,key):
     from cryptography.fernet import Fernet
     #key = Fernet.generate_key()
-    key = ('6Byfp7tBunpXYVddKepFEJgK950iA7jIwrb3NZkLWFY=').encode('utf-8')
     f = Fernet(key)
     if (direction=='e'): output = f.encrypt(input.encode('utf-8')).decode('utf-8')
-    if (direction=='d'): output = f.decrypt(input.encode('utf-8')).decode('utf-8')
+    if (direction=='d'):
+        try: output = f.decrypt(input.encode('utf-8')).decode('utf-8')
+        except:
+            print ("Invalid decryption key")
+            exit(1)
     return output
 
 def readfile(fname):
@@ -33,7 +36,7 @@ def search(server,target):
     VALID_TYPES = (Movie, Episode, Show)
     results = server.search(target)
     items = [i for i in results if i.__class__ in VALID_TYPES] #imported code
-    if (len(items)==0): return False  #in case nothing in found, dont ask to make a choice
+    if (len(items)==0): return False  #in case nothing is found, abort the loop, dont ask to make a choice
     items = utils.choose('Choose result', items, lambda x: '(%s) %s %s' % (x.type.title(), x.title[0:60], x.title[0:60])) #imported code
     if not isinstance(items, list): items = [items]  #converts items to a list if it already isnt a list
     item=[]
@@ -50,12 +53,10 @@ def search(server,target):
 def connect_plex(credentials):
     from plexapi.myplex import MyPlexAccount
     from plexapi.server import PlexServer
-    if (credentials['connection']=="direct"):
+    if (credentials.get('connection','')=="direct"):
         print ("Connecting Directly")
         baseurl = credentials['url']
         token = credentials['token']
-#        baseurl = 'http://192.168.2.24:32400'
-#        token = 'EExJBodT-H6A2MsLgrS3'
         server = PlexServer(baseurl, token)
     else:
         account = MyPlexAccount(credentials['username'],credentials['password'])
@@ -89,7 +90,9 @@ def add_items(items):
     return (items_to_dl) 
 
 def download_items(items_to_dl):
-    rate_limit = input("Enter download speed (in kb/sec): ")
+    rate_limit = input("Enter download speed limit, or press zero for none (in kb/sec): ")
+    if (rate_limit == ''): rate_limit="1E10"
+    rate_limit = float(rate_limit)
     for row in items_to_dl:
         url=row['url']
         token=row['token']
@@ -103,10 +106,12 @@ def main(args):
     go=True
     items_to_dl=[]
     credentials = readfile('credentials.json')
-    credentials['password']=crypt('d',credentials['password'])
-    server = connect_plex(credentials,'direct')
+    if "password" in credentials: credentials['password']=crypt('d',credentials['password'],credentials['pwkey'])
+    if "token" in credentials: credentials['token']=crypt('d',credentials['token'],credentials['tokenkey'])
+    server = connect_plex(credentials)
 #    show_info(server)
     while (go):
+        print ("%i items in queue" % len(items_to_dl))
         searchfor = input("Enter item to search for, or 'download' or 'exit': ")
         if (not searchfor): continue
         elif (searchfor.lower()=='exit'): go=False
@@ -118,7 +123,9 @@ def main(args):
                 continue
             new_list=add_items(found)
             if (new_list=='exit'): go=False
-            else: items_to_dl += new_list
+            else:
+                items_to_dl += new_list
+                print ("Item added to download queue")
     if (searchfor.lower()=='download'): download_items(items_to_dl)
     exit(0)
 

@@ -55,7 +55,7 @@ def download_with_rate(url, token, filename=None, savepath=None, session=None, c
         total = int(response.headers.get('content-length', 0))
         bar = tqdm(unit='B', unit_scale=True, total=total, desc=filename)
 
-    rate_limit = rate_limit * 1000 (go from bytes to kilobytes per second)
+    rate_limit = rate_limit * 1000 #(go from bytes to kilobytes per second)
     start_time=time.time() #when it starts.
     with open(fullpath, 'wb') as handle:
         for chunk in response.iter_content(chunk_size=chunksize):
