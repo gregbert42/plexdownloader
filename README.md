@@ -4,7 +4,7 @@ Current version: 0.1
 
 This is a tool that takes advantage of the PlexAPI to download movies from a plex server. This is very useful if you want to download movies or shows from one plex server to another. You can log into the the plex server either with a direct connection (e.g., port 32400) and a token or you can use the plex username and a password. This does NOT modify your plex library in any way. This is my first attempt to share some of my python work. The plexapi had bits and pieces of this, but needed to be strung together and I also added many enhancements, such as a bandwidth limiter. I appreciate your feedback, and of course any contributions.
 
-It requires that you create a file called "configuration.json", which as the name suggests, is a json-formatted configuration file. This file should be placed in the same directory as where the script is run from
+It requires that you create a file called "configuration.json", which as the name suggests, is a json-formatted configuration file. This file should be placed in the same directory as where the script is run from. Note that you must have the ability to write and create directories in the show_dir and movie_dir directories
 
 Here is an example configuration.json that uses a plex username and password:
 
