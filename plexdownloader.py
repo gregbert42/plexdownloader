@@ -1,9 +1,11 @@
 #!/usr/bin/python3
+#### Version 0.1
+#### April 19th 2020
+
+
 from plexapi import utils
 import sys,json,pprint,os
 import downloader
-
-#create directory with movie title
 
 def crypt(direction,input,key):
     from cryptography.fernet import Fernet
@@ -85,7 +87,7 @@ def add_items(items,configuration):
             while (go):
                 filename = '%s.%s' % (item._prettyfilename(), part.container) # borrowed code, next few lines
                 url = item._server.url('%s?download=1' % part.key)
-                print ("Filename: %s\t%s\t%.2f MB" % (filename,item.title,part.size/1E6))
+                print ("Filename: %s\t%s\t%.2f MB" % (filename, item.title, part.size/1E6))
                 query = input ("Add this file to queue? (y/n/exit): ")
                 if (query[:1].lower() == "y"):
                     splitfile = part.file.split('/')
@@ -129,8 +131,8 @@ def download_items(items_to_dl):
 
 def config (fname):
     configuration = readfile(fname)
-    if "password" in configuration: configuration['password']=crypt('d',configuration['password'],configuration['pwkey'])
-    if "token" in configuration: configuration['token']=crypt('d',configuration['token'],configuration['tokenkey'])
+    if "pwkey" in configuration: configuration['password']=crypt('d',configuration['password'],configuration['pwkey'])
+    if "tokenkey" in configuration: configuration['token']=crypt('d',configuration['token'],configuration['tokenkey'])
     if "movie_dir" not in configuration: configuration['movie_dir']=os.getcwd()
     if "show_dir" not in configuration: configuration['show_dir']=os.getcwd()
     if "servername" not in configuration: configuration['servername']='choose'
@@ -146,7 +148,7 @@ def search_prompt(server,configuration):
         searchfor = input("Enter item to search for, 'list' current queue 'download' or 'exit': ")
         if (not searchfor): continue # no input entered
         elif searchfor.lower() == 'download': go = False
-        elif searchfor.lower() == False: return False
+        elif searchfor.lower() == 'exit': return False
         elif searchfor.lower() == 'list':
             print ("---------------------------------------------------------------------------------")
             print ("%i items in queue" % len(items_to_dl))
