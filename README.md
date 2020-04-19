@@ -46,7 +46,7 @@ It is possible to use the enclosed encrypt.py tool to salt your password or toke
 "token":"<encrypted plex token>",
 "tokenkey":"<key for encrypted token>",
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
-"movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
+"movie_dir":"/plex_library_directory/where/you/want/to/save/movies"
 }
 ```
 
