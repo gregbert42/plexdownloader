@@ -129,7 +129,7 @@ def download_items(items_to_dl):
 def main(args):
     go=True
     items_to_dl=[]
-    credentials = readfile('credentials.json')
+    credentials = readfile(sys.path[0]+'/'+'credentials.json')
     if "password" in credentials: credentials['password']=crypt('d',credentials['password'],credentials['pwkey'])
     if "token" in credentials: credentials['token']=crypt('d',credentials['token'],credentials['tokenkey'])
     server = connect_plex(credentials)
