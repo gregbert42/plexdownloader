@@ -2,7 +2,7 @@
 
 Current version: 0.1
 
-This is a tool that takes advantage of the PlexAPI to download movies from a plex server. This is very useful if you want to download movies or shows from one plex server to another. You can log into the the plex server either with a direct connection (e.g., port 32400) and a token or you can use the plex username and a password. This does NOT modify your plex library in any way. This is my first attempt to share some of my python work. The plexapi had bits and pieces of this, but needed to be strung together and I also added many enhancements, such as a bandwidth limiter. I appreciate your feedback.
+This is a tool that takes advantage of the PlexAPI to download movies from a plex server. This is very useful if you want to download movies or shows from one plex server to another. You can log into the the plex server either with a direct connection (e.g., port 32400) and a token or you can use the plex username and a password. This does NOT modify your plex library in any way. This is my first attempt to share some of my python work. The plexapi had bits and pieces of this, but needed to be strung together and I also added many enhancements, such as a bandwidth limiter. I appreciate your feedback, and of course any contributions.
 
 It requires that you create a file called "configuration.json", which as the name suggests, is a json-formatted configuration file. This file should be placed in the same directory as where the script is run from
 
@@ -67,7 +67,7 @@ Connected
 Enter item to search for, 'list' current queue 'download' or 'exit':
 ```
 
-Here, you should enter a search term. It can be a move or episode title, a show title, or even an actor. It will search all the plex tags. So say you type in "Mr. Robot"
+Here, you should enter a search term. It can be a move or episode title, a show title, or even an actor. It will search all the plex tags. So say you type in "Mr. Robot". It should return any matching items from your plex server
 
 ```
 Enter item to search for, 'list' current queue 'download' or 'exit': Mr. Robot
