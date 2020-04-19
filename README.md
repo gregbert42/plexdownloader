@@ -105,13 +105,14 @@ Item added to download queue
 Enter item to search for, 'list' current queue 'download' or 'exit':
 ```
 
-If you select to download, it will ask you if you wish to set a bandwidth limit - this is very useful if you dont want to swamp the bandwidth of either connection side. Here, i enter a limit of 100 kb/sec. That will take a long time, but fine if you plan to leave it unattended 
+If you select to download, it will ask you if you wish to set a bandwidth limit - this is very useful if you dont want to swamp the bandwidth of either connection side. Here, i enter a limit of 100 kb/sec. That will take a long time, but fine if you plan to leave it unattended. Note that this will also create the plex proper directory structure, including movie titles and series titles, and season numbers. Need to keep things tidy afterall.
 
 ```
 Enter item to search for, 'list' current queue 'download' or 'exit': download
 Enter download speed limit, or press enter for none (in kb/sec): 100
 Mr..Robot.s04e13.mkv:   0%|                                                  | 495k/1.86G [00:03<5:10:23, 100kB/s]
 ```
+
 
 When it is done, you can select to exit
 
