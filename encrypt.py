@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+#a lightweight tool to encrypt strings with fernet
 import json
 
 def writeout (fname,linesout):

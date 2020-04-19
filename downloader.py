@@ -1,3 +1,4 @@
+#build upon plexapi download function, but adding in rate limiting
 def download_with_rate(url, token, filename=None, savepath=None, session=None, chunksize=4024,
              unpack=False, mocked=False, showstatus=False, rate_limit=None):
     import time,os,logging
