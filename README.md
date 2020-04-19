@@ -6,6 +6,7 @@ It requires that you create a file called "configuration.json", which as the nam
 
 Here is an example configuration.json that uses a plex username and password:
 
+```json
 {
 "connection":"plex",
 "username":"<your_plex_username_here>",
@@ -14,9 +15,10 @@ Here is an example configuration.json that uses a plex username and password:
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
 "movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
 }
-
+```
 and an example configuration.json using the direct connection method
 
+```json
 {
 "connection":"direct",
 "url":"http://<ip address of the plex server>:32400",
@@ -24,10 +26,11 @@ and an example configuration.json using the direct connection method
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
 "movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
 }
-
+```
 
 It is also possible to use the enclosed encrypt.py tool to salt your password or token. Here is an example configuration.json
 
+```json
 {
 "connection":"direct",
 "url":"http://<ip address of the plex server>:32400",
@@ -36,9 +39,11 @@ It is also possible to use the enclosed encrypt.py tool to salt your password or
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
 "movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
 }
+```
 
 you can do the same with a password, using the dictionary entry "pwkey" instead of "tokenkey"
 
 external dependencies (i.e., must be pip installed)
 - plexapi
 - cryptography.fernet
+"""
