@@ -11,11 +11,11 @@ Here is an example configuration.json that uses a plex username and password:
 ```json
 {
 "connection":"plexservice",
-"username":"<your_plex_username_here>",
-"password":"<your password here>",
+"username":"<your plex username>",
+"password":"<your plex password>",
 "servername":"choose",
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
-"movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
+"movie_dir":"/plex_library_directory/where/you/want/to/save/movies"
 }
 ```
 and an example configuration.json using the direct connection method
@@ -26,7 +26,7 @@ and an example configuration.json using the direct connection method
 "url":"http://<ip address of the plex server>:32400",
 "token":"<plex token>",
 "show_dir":"/plex_library_directory/where/you/want/to/save/shows",
-"movie_dir":"/plex_library_directory/where/you/want/to/save/shows"
+"movie_dir":"/plex_library_directory/where/you/want/to/save/movies"
 }
 ```
 Note that the DIRECT method seems to be considerably faster in most situations, since it does not rely on the plex service
