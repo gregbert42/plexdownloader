@@ -54,18 +54,24 @@ def download_with_rate(url, token, filename=None, savepath=None, session=None, c
     if showstatus:  # pragma: no cover
         total = int(response.headers.get('content-length', 0))
         bar = tqdm(unit='B', unit_scale=True, total=total, desc=filename)
-
     rate_limit = rate_limit * 1000 #(go from bytes to kilobytes per second)
+    pauser_timer = 0
+    downloaded = 0
+    new = True
     start_time=time.time() #when it starts.
     with open(fullpath, 'wb') as handle:
         for chunk in response.iter_content(chunk_size=chunksize):
             handle.write(chunk)
             if showstatus: bar.update(len(chunk))
-            elapsed_time = time.time() - start_time
-            speed = (chunksize/elapsed_time)
-            pauser_timer = (((speed/rate_limit)-1)*elapsed_time)
+            elapsed_time = time.time() - start_time  # keep track of elapsed time
+            downloaded += chunksize # keep track of how much was downloaded
+            if (elapsed_time > 1 or new):
+                new = False
+                speed = (downloaded/elapsed_time)
+                pauser_timer += (chunksize/rate_limit)-(chunksize/speed)   #how long it should take minus how long it did take for a chunk (since pause occurs per chunk)
+                start_time=time.time() #reset start time
+                downloaded = 0 #reset download counter
             if ((pauser_timer) > 0): time.sleep(pauser_timer)
-            start_time=time.time() #reset start time
 
     if showstatus:  # pragma: no cover
         bar.close()

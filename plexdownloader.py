@@ -7,9 +7,8 @@ import downloader
 
 def crypt(direction,input,key):
     from cryptography.fernet import Fernet
-    #key = Fernet.generate_key()
     f = Fernet(key)
-    if (direction=='e'): output = f.encrypt(input.encode('utf-8')).decode('utf-8')
+    if (direction=='e'): output = f.encrypt(input.encode('utf-8')).decode('utf-8') #never used in this code.
     if (direction=='d'):
         try: output = f.decrypt(input.encode('utf-8')).decode('utf-8')
         except:
@@ -18,54 +17,51 @@ def crypt(direction,input,key):
     return output
 
 def readfile(fname):
-    credentials={}
-    with open(fname, 'r') as readFile:
-        data=json.load(readFile)
-    readFile.close()
+    try:
+        with open(fname, 'r') as readFile: data=json.load(readFile)
+        readFile.close()
+    except:
+        print("Error:", sys.exc_info())
+        exit (1)
     return data
-
-def show_info (server):
-    print (server)
-    print (server.clients())
-    for client in server.clients():
-        print(client.title)
-    print (server.account)
 
 def search(server,target):
     from plexapi.video import Episode, Movie, Show
     VALID_TYPES = (Movie, Episode, Show)
     results = server.search(target)
-    items = [i for i in results if i.__class__ in VALID_TYPES] #imported code
-    if (len(items)==0): return False  #in case nothing is found, abort the loop, dont ask to make a choice
-    items = utils.choose('Choose your item: ', items, lambda x: '(%s) %s' % (x.type.title(), x.title[0:60])) #imported code
-    if not isinstance(items, list): items = [items]  #converts items to a list if it already isnt a list
+    items = [i for i in results if i.__class__ in VALID_TYPES] #adds any keys found that have a valid type
+    if (len(items)==0): return False                           #in case nothing is found, abort the loop, dont ask to make a choice
+    for item in items:
+        if isinstance (item,Episode): item.title = item.grandparentTitle + ' - ' + item.title   #adds on the show title for episodes
+    items = utils.choose('Choose your item', items, lambda x: '(%s) %s' % (x.type.title(), x.title[0:60])) #imported code
+    if not isinstance(items, list): items = [items]            #converts items to a list if it already isnt a list
     item=[]
     for i in items:
         if isinstance(i, Show):
             display = lambda i: '%s %s %s' % (i.grandparentTitle, i.seasonEpisode, i.title)
-            selected_eps = utils.choose('Choose episode: ', i.episodes(), display)
+            selected_eps = utils.choose('Choose episode', i.episodes(), display)
             if isinstance(selected_eps, list): item += selected_eps
             else: item.append(selected_eps)
         else: item.append(i) #If its not a show (doesnt have episodes), just adds directly
     if not isinstance(items, list): items = [items]  #converts items to a list if it already isnt a list
     return item #now a list again, so technically items
 
-def connect_plex(credentials):
+def connect_plex(configuration):
     from plexapi.myplex import MyPlexAccount
     from plexapi.server import PlexServer
-    if (credentials.get('connection','')=="direct"):
+    if (configuration['connection']=="direct"):
         print ("Connecting Directly")
-        baseurl = credentials['url']
-        token = credentials['token']
+        baseurl = configuration['url']
+        token = configuration['token']
         server = PlexServer(baseurl, token)
     else:
-        account = MyPlexAccount(credentials['username'],credentials['password'])
-        if (credentials['servername']=='choose'):
+        account = MyPlexAccount(configuration['username'],configuration['password'])
+        if (configuration['servername']=='choose'):
             servers = servers = [s for s in account.resources() if 'server' in s.provides]
             server_choice=utils.choose('Choose a Server', servers, 'name')
-            credentials['servername']=server_choice.name
-        print ("Connecting to %s" % credentials['servername'])
-        server = account.resource(credentials['servername']).connect()  # returns a PlexServer instance
+            configuration['servername']=server_choice.name
+        print ("Connecting to %s" % configuration['servername'])
+        server = account.resource(configuration['servername']).connect()  # returns a PlexServer instance
         token=account.authenticationToken
     print ("Connected")
     return (server)
@@ -80,10 +76,9 @@ def inspct(thing):
         return False
     return True
 
-def add_items(items):
+def add_items(items,configuration):
     items_to_dl=[]
     item_row={}
-#    print ("I've been given this to download",items)
     for item in items:
         for part in item.iterParts():
             go = True
@@ -94,7 +89,14 @@ def add_items(items):
                 query = input ("Add this file to queue? (y/n/exit): ")
                 if (query[:1].lower() == "y"):
                     splitfile = part.file.split('/')
-                    dirname = splitfile[len(splitfile)-2]
+                    if (item.type == "movie"):  dirname = configuration['movie_dir'] + '/' + splitfile[len(splitfile)-2]
+                    elif ((item.type == 'show') or (item.type == 'episode')):
+                        dirname = configuration['show_dir'] + '/' + splitfile[len(splitfile)-3] + '/' + splitfile[len(splitfile)-2]
+                    else:
+                       print ("Unknown Type encountered",item.type)
+                       exit(1)
+                    item_row['title']=item.title
+                    item_row['size']=part.size
                     item_row['dir']=dirname
                     item_row['url']=url
                     item_row['token']=item._server._token
@@ -103,7 +105,7 @@ def add_items(items):
                     item_row['type']=item.type
                     items_to_dl.append(item_row)
                     go = False
-                elif (query.lower() == 'exit'): return 'exit'
+                elif (query.lower() == 'exit'): return False
                 elif (query.lower() == 'inspect'):
                     print ("Inspection of item:")
                     inspct(item)
@@ -113,7 +115,7 @@ def add_items(items):
     return (items_to_dl)
 
 def download_items(items_to_dl):
-    rate_limit = input("Enter download speed limit, or press zero for none (in kb/sec): ")
+    rate_limit = input("Enter download speed limit, or press enter for none (in kb/sec): ")
     if (rate_limit == ''): rate_limit="1E10"
     rate_limit = float(rate_limit)
     for row in items_to_dl:
@@ -121,36 +123,50 @@ def download_items(items_to_dl):
         token=row['token']
         filename=row['filename']
         session=row['session']
-        savepath=os.getcwd()
-        if (row['type'] == "movie"): savepath=savepath + '/' + row['dir']
+        savepath=row['dir']
         downloader.download_with_rate(url, token=token, filename=filename, savepath=savepath,  session=session, showstatus=True, rate_limit=rate_limit)
     return
 
-def main(args):
-    go=True
+def config (fname):
+    configuration = readfile(fname)
+    if "password" in configuration: configuration['password']=crypt('d',configuration['password'],configuration['pwkey'])
+    if "token" in configuration: configuration['token']=crypt('d',configuration['token'],configuration['tokenkey'])
+    if "movie_dir" not in configuration: configuration['movie_dir']=os.getcwd()
+    if "show_dir" not in configuration: configuration['show_dir']=os.getcwd()
+    if "servername" not in configuration: configuration['servername']='choose'
+    if "connection" not in configuration:
+        print ("Connection not specified in configuration file")
+        exit (1)
+    return configuration
+
+def search_prompt(server,configuration):
+    go = True
     items_to_dl=[]
-    credentials = readfile(sys.path[0]+'/'+'credentials.json')
-    if "password" in credentials: credentials['password']=crypt('d',credentials['password'],credentials['pwkey'])
-    if "token" in credentials: credentials['token']=crypt('d',credentials['token'],credentials['tokenkey'])
-    server = connect_plex(credentials)
-#    show_info(server)
     while (go):
-        print ("%i items in queue" % len(items_to_dl))
-        searchfor = input("Enter item to search for, or 'download' or 'exit': ")
-        if (not searchfor): continue
-        elif (searchfor.lower()=='exit'): go=False
-        elif (searchfor.lower()=='download'): go=False
+        searchfor = input("Enter item to search for, 'list' current queue 'download' or 'exit': ")
+        if (not searchfor): continue # no input entered
+        elif searchfor.lower() == 'download': go = False
+        elif searchfor.lower() == False: return False
+        elif searchfor.lower() == 'list':
+            print ("---------------------------------------------------------------------------------")
+            print ("%i items in queue" % len(items_to_dl))
+            for item in items_to_dl: print ("%s\t%.02f MB" % (item['title'],item['size']/1E6))
+            print ("---------------------------------------------------------------------------------")
         else:
-            found = search(server,searchfor)
-            if (not found):
-                print ("nothing found")
-                continue
-            new_list=add_items(found)
-            if (new_list=='exit'): go=False
+            found = search(server,searchfor)         #calls subroutine to search for whatever was entered, returns a key
+            if (not found): print ("Nothing found that matches your input ")
+            new_list = add_items(found,configuration)  #adds it to the list with proper attributes
+            if (new_list == 'exit'): return False
             else:
-                items_to_dl += new_list
+                items_to_dl += new_list              #adds it to the list
                 print ("Item added to download queue")
-    if (searchfor.lower()=='download'): download_items(items_to_dl)
+    return items_to_dl
+
+def main(args):
+    configuration = config(sys.path[0]+'/'+'configuration.json')
+    server = connect_plex(configuration)
+    items_to_dl  = search_prompt(server,configuration)
+    if (items_to_dl): download_items(items_to_dl)
     exit(0)
 
 if __name__== "__main__":
