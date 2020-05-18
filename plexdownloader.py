@@ -156,10 +156,11 @@ def search_prompt(server,configuration):
             print ("---------------------------------------------------------------------------------")
         else:
             found = search(server,searchfor)         #calls subroutine to search for whatever was entered, returns a key
-            if (not found): print ("Nothing found that matches your input ")
-            new_list = add_items(found,configuration)  #adds it to the list with proper attributes
-            if (new_list == 'exit'): return False
+            if (not found):
+                print ("Nothing found that matches your input ")
+            elif (searchfor  == 'exit'): go = items_to_dl = False
             else:
+                new_list = add_items(found,configuration)  #adds it to the list with proper attributes
                 items_to_dl += new_list              #adds it to the list
                 print ("Item added to download queue")
     return items_to_dl
