@@ -6,6 +6,7 @@
 from plexapi import utils
 import sys,json,pprint,os
 import downloader
+import pickle
 
 def crypt(direction,input,key):
     from cryptography.fernet import Fernet
@@ -120,13 +121,16 @@ def download_items(items_to_dl):
     rate_limit = input("Enter download speed limit, or press enter for none (in kb/sec): ")
     if (rate_limit == ''): rate_limit="1E10"
     rate_limit = float(rate_limit)
-    for row in items_to_dl:
+    for x in range(len(items_to_dl)):
+#    for row in items_to_dl:
+        row = items_to_dl.pop(0)
         url=row['url']
         token=row['token']
         filename=row['filename']
         session=row['session']
         savepath=row['dir']
         downloader.download_with_rate(url, token=token, filename=filename, savepath=savepath,  session=session, showstatus=True, rate_limit=rate_limit)
+        save_binary(items_to_dl)
     return
 
 def config (fname):
@@ -147,6 +151,7 @@ def search_prompt(server,configuration):
     while (go):
         searchfor = input("Enter item to search for, 'list' current queue 'download' or 'exit': ")
         if (not searchfor): continue # no input entered
+        elif searchfor.lower() == 'loadlist': items_to_dl=load_binary()
         elif searchfor.lower() == 'download': go = False
         elif searchfor.lower() == 'exit': return False
         elif searchfor.lower() == 'list':
@@ -165,10 +170,27 @@ def search_prompt(server,configuration):
                 print ("Item added to download queue")
     return items_to_dl
 
+def save_binary(dict):
+    a_file = open('/tmp/plexdownloader.pkl','wb')
+    pickle.dump(dict, a_file)
+    a_file.close()
+
+def load_binary():
+    fname =  "/tmp/plexdownloader.pkl"
+    print(fname)
+    if not os.path.exists(fname):
+       print("No saved list exist; Returning blank")
+       output = []
+    else:
+      a_file = open(fname, "rb")
+      output = pickle.load(a_file)
+    return (output)
+
 def main(args):
     configuration = config(sys.path[0]+'/'+'configuration.json')
     server = connect_plex(configuration)
     items_to_dl  = search_prompt(server,configuration)
+    save_binary (items_to_dl)
     if (items_to_dl): download_items(items_to_dl)
     exit(0)
 
